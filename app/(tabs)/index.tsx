@@ -12,14 +12,36 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useScenario } from "@/lib/scenario-context";
+import { getWeatherByCity, formatWeather, getWeatherEmoji } from "@/lib/weather-service";
 import type { Scenario } from "@/shared/types";
+import type { WeatherData } from "@/lib/weather-service";
 import { SAMPLE_SCENARIOS, MINI_ROUTES, SMART_TRIGGERS } from "@/lib/sample-data";
 
-function WeatherWidget({ colors }: { colors: ReturnType<typeof useColors> }) {
+function WeatherWidget({ weather, colors, loading }: { weather: WeatherData | null; colors: ReturnType<typeof useColors>; loading: boolean }) {
+  if (loading) {
+    return (
+      <View style={[styles.weatherWidget, { backgroundColor: colors.primary + "18" }]}>
+        <Text style={[styles.weatherText, { color: colors.primary }]}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!weather) {
+    return (
+      <View style={[styles.weatherWidget, { backgroundColor: colors.primary + "18" }]}>
+        <IconSymbol name="sun.max.fill" size={16} color={colors.primary} />
+        <Text style={[styles.weatherText, { color: colors.primary }]}>--°C</Text>
+      </View>
+    );
+  }
+
+  const emoji = getWeatherEmoji(weather.main);
   return (
     <View style={[styles.weatherWidget, { backgroundColor: colors.primary + "18" }]}>
-      <IconSymbol name="sun.max.fill" size={16} color={colors.primary} />
-      <Text style={[styles.weatherText, { color: colors.primary }]}>22°C · Clear</Text>
+      <Text style={styles.weatherEmoji}>{emoji}</Text>
+      <Text style={[styles.weatherText, { color: colors.primary }]}>
+        {Math.round(weather.temp)}°C · {weather.description}
+      </Text>
     </View>
   );
 }
@@ -104,8 +126,22 @@ function SmartTriggerBanner({ trigger, colors }: { trigger: { icon: string; text
 
 export default function HomeScreen() {
   const colors = useColors();
-  const { state } = useScenario();
+  const { state, setWeather, setWeatherLoading } = useScenario();
   const [dailyScenario, setDailyScenario] = useState<Scenario>(SAMPLE_SCENARIOS[0]);
+
+  // Fetch weather on mount and when city changes
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setWeatherLoading(true);
+      const result = await getWeatherByCity(state.preferences.city);
+      if (!("code" in result)) {
+        setWeather(result);
+      }
+      setWeatherLoading(false);
+    };
+
+    fetchWeather();
+  }, [state.preferences.city, setWeather, setWeatherLoading]);
 
   useEffect(() => {
     if (state.dailyScenario) {
@@ -131,7 +167,7 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
-          <WeatherWidget colors={colors} />
+          <WeatherWidget weather={state.weather} colors={colors} loading={state.weatherLoading} />
         </View>
 
         {/* Daily Scenario */}
@@ -210,6 +246,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
   },
+  weatherEmoji: { fontSize: 16 },
   weatherText: { fontSize: 13, fontWeight: "600" },
   section: { marginBottom: 28 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },

@@ -65,8 +65,11 @@ export const appRouter = router({
 
   scenario: router({
     generate: publicProcedure
-      .input(ScenarioParamsSchema)
+      .input(ScenarioParamsSchema.extend({ weather: z.object({ temp: z.number(), main: z.string(), description: z.string() }).optional() }))
       .mutation(async ({ input }): Promise<Scenario> => {
+        const weatherContext = input.weather
+          ? `\n- Current weather: ${Math.round(input.weather.temp)}°C, ${input.weather.description} (${input.weather.main})`
+          : "";
         const prompt = `You are LifeScenario AI — a personal life scenario planner. Generate a detailed, realistic life scenario for someone in ${input.city}.
 
 Parameters:
@@ -76,9 +79,9 @@ Parameters:
 - Mood/goal: ${MOOD_MAP[input.mood]}
 - Budget: ${BUDGET_MAP[input.budget]}
 - Scenario type: ${input.scenarioType}
-- Social context: ${input.socialMode === "solo" ? "going alone" : `going with ${input.socialMode}`}
+- Social context: ${input.socialMode === "solo" ? "going alone" : `going with ${input.socialMode}`}${weatherContext}
 
-Create a realistic, specific scenario with 3-5 sequential steps. Each step should be a real type of place or activity that exists in ${input.city}.
+Create a realistic, specific scenario with 3-5 sequential steps. Each step should be a real type of place or activity that exists in ${input.city}. Consider the current weather conditions when suggesting indoor vs outdoor activities.
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
 {

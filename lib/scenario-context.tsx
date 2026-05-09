@@ -1,12 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useReducer } from "react";
 import type { Scenario, UserPreferences } from "@/shared/types";
+import type { WeatherData } from "@/lib/weather-service";
 
 interface ScenarioState {
   savedScenarios: Scenario[];
   history: Scenario[];
   preferences: UserPreferences;
   dailyScenario: Scenario | null;
+  weather: WeatherData | null;
+  weatherLoading: boolean;
 }
 
 type ScenarioAction =
@@ -15,7 +18,9 @@ type ScenarioAction =
   | { type: "UNSAVE_SCENARIO"; payload: string }
   | { type: "ADD_TO_HISTORY"; payload: Scenario }
   | { type: "UPDATE_PREFERENCES"; payload: Partial<UserPreferences> }
-  | { type: "LOAD_STATE"; payload: Partial<ScenarioState> };
+  | { type: "LOAD_STATE"; payload: Partial<ScenarioState> }
+  | { type: "SET_WEATHER"; payload: WeatherData }
+  | { type: "SET_WEATHER_LOADING"; payload: boolean };
 
 const defaultPreferences: UserPreferences = {
   city: "Prague",
@@ -31,6 +36,8 @@ const initialState: ScenarioState = {
   history: [],
   preferences: defaultPreferences,
   dailyScenario: null,
+  weather: null,
+  weatherLoading: false,
 };
 
 function reducer(state: ScenarioState, action: ScenarioAction): ScenarioState {
@@ -65,6 +72,10 @@ function reducer(state: ScenarioState, action: ScenarioAction): ScenarioState {
       };
     case "LOAD_STATE":
       return { ...state, ...action.payload };
+    case "SET_WEATHER":
+      return { ...state, weather: action.payload, weatherLoading: false };
+    case "SET_WEATHER_LOADING":
+      return { ...state, weatherLoading: action.payload };
     default:
       return state;
   }
@@ -78,6 +89,8 @@ interface ScenarioContextValue {
   updatePreferences: (prefs: Partial<UserPreferences>) => void;
   setDailyScenario: (scenario: Scenario) => void;
   isSaved: (id: string) => boolean;
+  setWeather: (weather: WeatherData) => void;
+  setWeatherLoading: (loading: boolean) => void;
 }
 
 const ScenarioContext = createContext<ScenarioContextValue | null>(null);
@@ -131,6 +144,14 @@ export function ScenarioProvider({ children }: { children: React.ReactNode }) {
     [state.savedScenarios]
   );
 
+  const setWeather = useCallback((weather: WeatherData) => {
+    dispatch({ type: "SET_WEATHER", payload: weather });
+  }, []);
+
+  const setWeatherLoading = useCallback((loading: boolean) => {
+    dispatch({ type: "SET_WEATHER_LOADING", payload: loading });
+  }, []);
+
   return (
     <ScenarioContext.Provider
       value={{
@@ -141,6 +162,8 @@ export function ScenarioProvider({ children }: { children: React.ReactNode }) {
         updatePreferences,
         setDailyScenario,
         isSaved,
+        setWeather,
+        setWeatherLoading,
       }}
     >
       {children}

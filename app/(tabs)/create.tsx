@@ -198,7 +198,15 @@ export default function CreateScreen() {
     if (!canProceed()) return;
     setIsGenerating(true);
     try {
-      const scenario = await generateMutation.mutateAsync(params as ScenarioParams);
+      const paramsWithWeather = {
+        ...params,
+        weather: state.weather ? {
+          temp: state.weather.temp,
+          main: state.weather.main,
+          description: state.weather.description,
+        } : undefined,
+      } as any;
+      const scenario = await generateMutation.mutateAsync(paramsWithWeather);
       addToHistory(scenario);
       setDailyScenario(scenario);
       router.push({ pathname: "/scenario/[id]" as any, params: { id: scenario.id, data: JSON.stringify(scenario) } });
