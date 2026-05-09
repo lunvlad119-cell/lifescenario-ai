@@ -37,3 +37,16 @@
 - [x] Update AI prompt with weather context
 - [x] Handle weather API errors gracefully
 - [x] Test weather-based scenario generation
+
+
+## UX Refactoring (Complete)
+- [x] Simplify Home screen: remove clutter, keep Daily Scenario + Mini Routes + Smart Suggestion + Create button
+- [x] Simplify Explore screen: show only curated collections (Cozy Evening, Rainy Walk, Explore City)
+- [x] Improve Create flow: update energy levels to 4 tiers (Very Low, Low, Normal, High)
+- [x] Add budget display with euro amounts (Free/5-15€/15-40€/40€+)
+- [x] Create atmospheric loading experience with pulsing animations
+- [x] Add rotating loading messages (Analyzing weather, Finding spots, Matching mood, etc.)
+- [x] Enhance AI prompts for weather-aware, concise, atmospheric scenarios
+- [x] Improve scenario format: short blocks with emoji, title, price, time, atmosphere
+- [x] Test all flows end-to-end
+- [x] Polish spacing, typography, and transitions

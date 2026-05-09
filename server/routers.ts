@@ -27,11 +27,10 @@ const BUDGET_MAP: Record<string, string> = {
 };
 
 const ENERGY_MAP: Record<number, string> = {
-  1: "very tired, needs minimal physical effort",
+  1: "very tired, needs rest and minimal physical effort",
   2: "low energy, calm and slow pace preferred",
   3: "normal energy, balanced activities",
-  4: "active and ready to move",
-  5: "maximum energy, intense activities welcome",
+  4: "high energy, active and ready to move",
 };
 
 const DURATION_MAP: Record<string, string> = {
@@ -43,13 +42,10 @@ const DURATION_MAP: Record<string, string> = {
 };
 
 const MOOD_MAP: Record<string, string> = {
-  recover: "wants to recover and restore energy",
+  recover: "wants to recharge and restore energy",
   explore: "wants to explore and discover new things",
   calm: "wants peace and tranquility",
-  "new-emotions": "wants new emotions and experiences",
-  cozy: "wants a cozy, comfortable experience",
-  productive: "wants to be productive and focused",
-  cultural: "wants cultural and intellectual experiences",
+  cozy: "wants a warm, comfortable, intimate experience",
 };
 
 export const appRouter = router({
@@ -70,7 +66,13 @@ export const appRouter = router({
         const weatherContext = input.weather
           ? `\n- Current weather: ${Math.round(input.weather.temp)}°C, ${input.weather.description} (${input.weather.main})`
           : "";
-        const prompt = `You are LifeScenario AI — a personal life scenario planner. Generate a detailed, realistic life scenario for someone in ${input.city}.
+        const weatherAdvice = input.weather?.main === "Rain"
+          ? "IMPORTANT: Since it's raining, prioritize indoor/cozy places and short transitions. Make the scenario feel warm and intimate."
+          : input.weather?.main === "Cloud"
+          ? "IMPORTANT: Cloudy weather is perfect for calm walks and atmospheric exploration. Suggest peaceful outdoor spots."
+          : "IMPORTANT: Sunny weather is ideal for outdoor activities and exploration. Suggest open spaces and walking routes.";
+
+        const prompt = `You are LifeScenario AI — a personal life scenario planner. Generate a SHORT, ATMOSPHERIC, REALISTIC life scenario for someone in ${input.city}.
 
 Parameters:
 - Available time: ${DURATION_MAP[input.duration]}
@@ -81,7 +83,9 @@ Parameters:
 - Scenario type: ${input.scenarioType}
 - Social context: ${input.socialMode === "solo" ? "going alone" : `going with ${input.socialMode}`}${weatherContext}
 
-Create a realistic, specific scenario with 3-5 sequential steps. Each step should be a real type of place or activity that exists in ${input.city}. Consider the current weather conditions when suggesting indoor vs outdoor activities.
+${weatherAdvice}
+
+Create a realistic, specific scenario with 3-4 SHORT steps. Each step should be a real type of place or activity that exists in ${input.city}. Make it feel ATMOSPHERIC and LIVED-IN, not generic. Keep descriptions SHORT and POETIC.
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
 {
@@ -93,12 +97,12 @@ Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
   "weatherSuitability": "Weather condition this suits",
   "steps": [
     {
-      "title": "Step title",
-      "description": "2-3 sentences describing what to do and why it fits the mood",
+      "title": "Short step title with emoji (e.g., ☕ Cozy Café)",
+      "description": "1-2 short sentences. Poetic and atmospheric. Why this place, what to feel.",
       "duration": "Duration like '20 min' or '45 min'",
       "budgetEstimate": "Budget like 'Free' or '€5-8'",
       "locationType": "indoor or outdoor or transit",
-      "emoji": "Relevant emoji for this step"
+      "emoji": "Relevant emoji"
     }
   ]
 }`;

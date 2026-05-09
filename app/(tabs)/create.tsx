@@ -1,15 +1,14 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
+import { AtmosphericLoader } from "@/components/atmospheric-loader";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useScenario } from "@/lib/scenario-context";
@@ -18,7 +17,7 @@ import type { Duration, TimeOfDay, EnergyLevel, Mood, Budget, ScenarioType, Soci
 import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
 
-const STEPS = ["Duration", "Time of Day", "Energy", "Mood", "Budget", "Type", "Social"];
+const STEPS = ["Duration", "Time", "Energy", "Mood", "Budget", "Type", "Social"];
 
 // Step 1: Duration
 const DURATIONS: { value: Duration; label: string; icon: string }[] = [
@@ -26,7 +25,7 @@ const DURATIONS: { value: Duration; label: string; icon: string }[] = [
   { value: "30-60min", label: "30–60 min", icon: "🕐" },
   { value: "1-2h", label: "1–2 hours", icon: "🕑" },
   { value: "2-4h", label: "2–4 hours", icon: "🕒" },
-  { value: "half-day", label: "Half day", icon: "🌅" },
+  { value: "half-day", label: "Full Day", icon: "🌅" },
 ];
 
 // Step 2: Time of Day
@@ -37,33 +36,28 @@ const TIMES: { value: TimeOfDay; label: string; icon: string }[] = [
   { value: "night", label: "Night", icon: "🌙" },
 ];
 
-// Step 3: Energy
+// Step 3: Energy (4 levels instead of 5)
 const ENERGIES: { value: EnergyLevel; label: string; icon: string; desc: string }[] = [
-  { value: 1, label: "Very Tired", icon: "😴", desc: "Need rest" },
-  { value: 2, label: "Low Energy", icon: "😌", desc: "Calm pace" },
+  { value: 1, label: "Very Low", icon: "😴", desc: "Need rest" },
+  { value: 2, label: "Low", icon: "😌", desc: "Calm pace" },
   { value: 3, label: "Normal", icon: "🙂", desc: "Balanced" },
-  { value: 4, label: "Active", icon: "😊", desc: "Ready to move" },
-  { value: 5, label: "Max Energy", icon: "🔥", desc: "Let's go!" },
+  { value: 4, label: "High", icon: "🔥", desc: "Let's go!" },
 ];
 
 // Step 4: Mood
 const MOODS: { value: Mood; label: string; icon: string }[] = [
-  { value: "recover", label: "Recover", icon: "💆" },
+  { value: "recover", label: "Recharge", icon: "💆" },
+  { value: "cozy", label: "Cozy", icon: "🏠" },
   { value: "explore", label: "Explore", icon: "🗺️" },
   { value: "calm", label: "Calm", icon: "🧘" },
-  { value: "new-emotions", label: "New Emotions", icon: "✨" },
-  { value: "cozy", label: "Cozy Day", icon: "🏠" },
-  { value: "productive", label: "Productive", icon: "💼" },
-  { value: "cultural", label: "Cultural", icon: "🎭" },
 ];
 
 // Step 5: Budget
 const BUDGETS: { value: Budget; label: string; icon: string; desc: string }[] = [
-  { value: "free", label: "Free", icon: "🆓", desc: "€0" },
-  { value: "cheap", label: "Cheap", icon: "💚", desc: "€1–10" },
-  { value: "medium", label: "Medium", icon: "💛", desc: "€10–25" },
-  { value: "comfortable", label: "Comfortable", icon: "🧡", desc: "€25–50" },
-  { value: "premium", label: "Premium", icon: "💜", desc: "€50+" },
+  { value: "free", label: "Free", icon: "🆓", desc: "0€" },
+  { value: "cheap", label: "Cheap", icon: "💚", desc: "5–15€" },
+  { value: "medium", label: "Medium", icon: "💛", desc: "15–40€" },
+  { value: "comfortable", label: "Premium", icon: "💜", desc: "40€+" },
 ];
 
 // Step 6: Scenario Type
@@ -74,7 +68,6 @@ const TYPES: { value: ScenarioType; label: string; icon: string }[] = [
   { value: "culture", label: "Culture", icon: "🎨" },
   { value: "activity", label: "Activity", icon: "⚽" },
   { value: "rest", label: "Rest", icon: "😌" },
-  { value: "mixed", label: "Mixed", icon: "🔀" },
 ];
 
 // Step 7: Social Mode
@@ -83,7 +76,6 @@ const SOCIAL_MODES: { value: SocialMode; label: string; icon: string }[] = [
   { value: "friends", label: "Friends", icon: "👥" },
   { value: "partner", label: "Partner", icon: "💑" },
   { value: "family", label: "Family", icon: "👨‍👩‍👧" },
-  { value: "random", label: "Random", icon: "🎲" },
 ];
 
 function PillOption<T extends string | number>({
@@ -233,7 +225,7 @@ export default function CreateScreen() {
       case 1:
         return (
           <View style={styles.stepContent}>
-            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>What time of day is it?</Text>
+            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>What time of day?</Text>
             <View style={styles.pillsGrid}>
               {TIMES.map((t) => (
                 <GridOption key={t.value} value={t.value} selected={params.timeOfDay === t.value} label={t.label} icon={t.icon} onPress={(v) => set("timeOfDay", v)} colors={colors} />
@@ -244,7 +236,7 @@ export default function CreateScreen() {
       case 2:
         return (
           <View style={styles.stepContent}>
-            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>How's your energy level?</Text>
+            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>Your energy level?</Text>
             <View style={styles.pillsColumn}>
               {ENERGIES.map((e) => (
                 <PillOption key={e.value} value={e.value} selected={params.energyLevel === e.value} label={e.label} icon={e.icon} desc={e.desc} onPress={(v) => set("energyLevel", v)} colors={colors} />
@@ -266,7 +258,7 @@ export default function CreateScreen() {
       case 4:
         return (
           <View style={styles.stepContent}>
-            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>What's your budget?</Text>
+            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>Budget?</Text>
             <View style={styles.pillsColumn}>
               {BUDGETS.map((b) => (
                 <PillOption key={b.value} value={b.value} selected={params.budget === b.value} label={b.label} icon={b.icon} desc={b.desc} onPress={(v) => set("budget", v)} colors={colors} />
@@ -277,7 +269,7 @@ export default function CreateScreen() {
       case 5:
         return (
           <View style={styles.stepContent}>
-            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>What type of scenario?</Text>
+            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>What type?</Text>
             <View style={styles.pillsGrid}>
               {TYPES.map((t) => (
                 <GridOption key={t.value} value={t.value} selected={params.scenarioType === t.value} label={t.label} icon={t.icon} onPress={(v) => set("scenarioType", v)} colors={colors} />
@@ -288,23 +280,11 @@ export default function CreateScreen() {
       case 6:
         return (
           <View style={styles.stepContent}>
-            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>Who are you going with?</Text>
+            <Text style={[styles.stepQuestion, { color: colors.foreground }]}>Going with?</Text>
             <View style={styles.pillsGrid}>
               {SOCIAL_MODES.map((s) => (
                 <GridOption key={s.value} value={s.value} selected={params.socialMode === s.value} label={s.label} icon={s.icon} onPress={(v) => set("socialMode", v)} colors={colors} />
               ))}
-            </View>
-            {/* City input */}
-            <View style={[styles.cityInput, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <IconSymbol name="location.fill" size={16} color={colors.primary} />
-              <TextInput
-                style={[styles.cityInputText, { color: colors.foreground }]}
-                value={params.city}
-                onChangeText={(v) => set("city", v)}
-                placeholder="Your city"
-                placeholderTextColor={colors.muted}
-                returnKeyType="done"
-              />
             </View>
           </View>
         );
@@ -315,174 +295,126 @@ export default function CreateScreen() {
 
   return (
     <ScreenContainer containerClassName="bg-background">
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Create Scenario</Text>
-        <View style={[styles.aiBadge, { backgroundColor: colors.primary + "18" }]}>
-          <IconSymbol name="sparkles" size={12} color={colors.primary} />
-          <Text style={[styles.aiBadgeText, { color: colors.primary }]}>AI Powered</Text>
-        </View>
-      </View>
-
-      {/* Progress bar */}
-      <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
-        <View style={[styles.progressFill, { backgroundColor: colors.primary, width: `${((step + 1) / STEPS.length) * 100}%` }]} />
-      </View>
-      <View style={styles.stepIndicator}>
-        <Text style={[styles.stepLabel, { color: colors.muted }]}>Step {step + 1} of {STEPS.length}</Text>
-        <Text style={[styles.stepName, { color: colors.primary }]}>{STEPS[step]}</Text>
-      </View>
-
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {renderStep()}
+        {/* Progress */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${((step + 1) / STEPS.length) * 100}%`, backgroundColor: colors.primary }]} />
+          </View>
+          <Text style={[styles.progressText, { color: colors.muted }]}>
+            {step + 1} of {STEPS.length}
+          </Text>
+        </View>
+
+        {/* Step Content */}
+        {isGenerating ? (
+          <AtmosphericLoader />
+        ) : (
+          renderStep()
+        )}
+
+        {/* Navigation */}
+        {!isGenerating && (
+          <View style={styles.navigation}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.navButton,
+                { backgroundColor: colors.surface, opacity: pressed ? 0.8 : 1, borderColor: colors.border, borderWidth: 1 },
+              ]}
+              onPress={() => step > 0 && setStep(step - 1)}
+              disabled={step === 0}
+            >
+              <Text style={[styles.navButtonText, { color: step === 0 ? colors.muted : colors.foreground }]}>Back</Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.navButton,
+                { backgroundColor: canProceed() ? colors.primary : colors.surface, opacity: pressed ? 0.9 : 1 },
+              ]}
+              onPress={() => {
+                if (step < STEPS.length - 1) {
+                  setStep(step + 1);
+                } else {
+                  handleGenerate();
+                }
+              }}
+              disabled={!canProceed()}
+            >
+              <Text style={[styles.navButtonText, { color: canProceed() ? "#FFFFFF" : colors.muted }]}>
+                {step === STEPS.length - 1 ? "Generate" : "Next"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         <View style={{ height: 24 }} />
       </ScrollView>
-
-      {/* Bottom navigation */}
-      <View style={[styles.bottomNav, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-        {step > 0 && (
-          <Pressable
-            style={({ pressed }) => [styles.backBtn, { backgroundColor: colors.background, borderColor: colors.border, opacity: pressed ? 0.7 : 1 }]}
-            onPress={() => setStep((s) => s - 1)}
-          >
-            <IconSymbol name="chevron.left" size={20} color={colors.foreground} />
-          </Pressable>
-        )}
-        {step < STEPS.length - 1 ? (
-          <Pressable
-            style={({ pressed }) => [
-              styles.nextBtn,
-              { backgroundColor: canProceed() ? colors.primary : colors.border, opacity: pressed ? 0.9 : 1 },
-            ]}
-            onPress={() => canProceed() && setStep((s) => s + 1)}
-          >
-            <Text style={[styles.nextBtnText, { color: canProceed() ? "#FFFFFF" : colors.muted }]}>Next</Text>
-            <IconSymbol name="chevron.right" size={18} color={canProceed() ? "#FFFFFF" : colors.muted} />
-          </Pressable>
-        ) : (
-          <Pressable
-            style={({ pressed }) => [
-              styles.generateBtn,
-              { backgroundColor: canProceed() ? colors.primary : colors.border, opacity: pressed ? 0.9 : 1 },
-            ]}
-            onPress={handleGenerate}
-            disabled={isGenerating || !canProceed()}
-          >
-            {isGenerating ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <>
-                <IconSymbol name="sparkles" size={18} color={canProceed() ? "#FFFFFF" : colors.muted} />
-                <Text style={[styles.generateBtnText, { color: canProceed() ? "#FFFFFF" : colors.muted }]}>Generate Scenario</Text>
-              </>
-            )}
-          </Pressable>
-        )}
-      </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  headerTitle: { fontSize: 22, fontWeight: "800" },
-  aiBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  aiBadgeText: { fontSize: 12, fontWeight: "700" },
-  progressBar: { height: 3, marginHorizontal: 20, borderRadius: 2 },
-  progressFill: { height: 3, borderRadius: 2 },
-  stepIndicator: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  stepLabel: { fontSize: 13 },
-  stepName: { fontSize: 13, fontWeight: "700" },
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20 },
-  stepContent: { paddingTop: 8, gap: 12 },
-  stepQuestion: { fontSize: 20, fontWeight: "700", lineHeight: 28, marginBottom: 8 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  progressContainer: { marginBottom: 28 },
+  progressBar: {
+    height: 4,
+    backgroundColor: "rgba(0,0,0,0.1)",
+    borderRadius: 2,
+    marginBottom: 8,
+    overflow: "hidden",
+  },
+  progressFill: { height: "100%", borderRadius: 2 },
+  progressText: { fontSize: 12, fontWeight: "500" },
+  stepContent: { marginBottom: 32 },
+  stepQuestion: { fontSize: 22, fontWeight: "700", marginBottom: 20, lineHeight: 28 },
   pillsColumn: { gap: 10 },
-  pillsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  pillsGrid: {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
   pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-  },
-  pillIcon: { fontSize: 22 },
-  pillLabel: { fontSize: 15, fontWeight: "600", flex: 1 },
-  pillDesc: { fontSize: 12 },
-  gridItem: {
-    width: "47%",
-    alignItems: "center",
-    paddingVertical: 16,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    gap: 6,
-  },
-  gridIcon: { fontSize: 28 },
-  gridLabel: { fontSize: 13, fontWeight: "600" },
-  cityInput: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    marginTop: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
   },
-  cityInputText: { flex: 1, fontSize: 15 },
-  bottomNav: {
+  pillIcon: { fontSize: 20 },
+  pillLabel: { fontSize: 15, fontWeight: "600" },
+  pillDesc: { fontSize: 12, fontWeight: "400" },
+  gridItem: {
+    flex: 1,
+    minWidth: "45%",
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    gap: 6,
+  },
+  gridIcon: { fontSize: 24 },
+  gridLabel: { fontSize: 13, fontWeight: "600", textAlign: "center" },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 80,
+    gap: 16,
+  },
+  loadingText: { fontSize: 15, fontWeight: "500" },
+  navigation: {
     flexDirection: "row",
     gap: 12,
-    padding: 16,
-    borderTopWidth: 0.5,
+    marginTop: 32,
   },
-  backBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  nextBtn: {
+  navButton: {
     flex: 1,
-    flexDirection: "row",
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    height: 50,
-    borderRadius: 14,
   },
-  nextBtnText: { fontSize: 16, fontWeight: "700" },
-  generateBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    height: 50,
-    borderRadius: 14,
-  },
-  generateBtnText: { fontSize: 16, fontWeight: "700" },
+  navButtonText: { fontSize: 15, fontWeight: "700" },
 });

@@ -12,10 +12,10 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useScenario } from "@/lib/scenario-context";
-import { getWeatherByCity, formatWeather, getWeatherEmoji } from "@/lib/weather-service";
+import { getWeatherByCity, getWeatherEmoji } from "@/lib/weather-service";
 import type { Scenario } from "@/shared/types";
 import type { WeatherData } from "@/lib/weather-service";
-import { SAMPLE_SCENARIOS, MINI_ROUTES, SMART_TRIGGERS } from "@/lib/sample-data";
+import { SAMPLE_SCENARIOS, MINI_ROUTES } from "@/lib/sample-data";
 
 function WeatherWidget({ weather, colors, loading }: { weather: WeatherData | null; colors: ReturnType<typeof useColors>; loading: boolean }) {
   if (loading) {
@@ -40,7 +40,7 @@ function WeatherWidget({ weather, colors, loading }: { weather: WeatherData | nu
     <View style={[styles.weatherWidget, { backgroundColor: colors.primary + "18" }]}>
       <Text style={styles.weatherEmoji}>{emoji}</Text>
       <Text style={[styles.weatherText, { color: colors.primary }]}>
-        {Math.round(weather.temp)}°C · {weather.description}
+        {Math.round(weather.temp)}°C
       </Text>
     </View>
   );
@@ -57,23 +57,29 @@ function DailyScenarioCard({ scenario, colors }: { scenario: Scenario; colors: R
       onPress={() => router.push({ pathname: "/scenario/[id]" as any, params: { id: scenario.id, data: JSON.stringify(scenario) } })}
     >
       <View style={styles.dailyCardTop}>
+        <View style={styles.dailyCardLeft}>
+          <Text style={styles.dailyCardEmoji}>{scenario.emoji}</Text>
+          <View>
+            <Text style={styles.dailyCardTitle}>{scenario.title}</Text>
+            <Text style={styles.dailyCardSubtitle}>{scenario.subtitle}</Text>
+          </View>
+        </View>
         <View style={[styles.moodTag, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
           <Text style={styles.moodTagText}>{scenario.moodTag}</Text>
         </View>
-        <Text style={styles.dailyCardEmoji}>{scenario.emoji}</Text>
       </View>
-      <Text style={styles.dailyCardTitle}>{scenario.title}</Text>
-      <Text style={styles.dailyCardSubtitle}>{scenario.subtitle}</Text>
+
       <View style={styles.dailyCardMeta}>
         <View style={styles.metaItem}>
-          <IconSymbol name="clock.fill" size={14} color="rgba(255,255,255,0.8)" />
+          <IconSymbol name="clock.fill" size={13} color="rgba(255,255,255,0.8)" />
           <Text style={styles.metaText}>{scenario.totalDuration}</Text>
         </View>
         <View style={styles.metaItem}>
-          <IconSymbol name="location.fill" size={14} color="rgba(255,255,255,0.8)" />
+          <IconSymbol name="location.fill" size={13} color="rgba(255,255,255,0.8)" />
           <Text style={styles.metaText}>{scenario.steps.length} stops</Text>
         </View>
       </View>
+
       <View style={[styles.startButton, { backgroundColor: "rgba(255,255,255,0.22)" }]}>
         <Text style={styles.startButtonText}>View Scenario</Text>
         <IconSymbol name="chevron.right" size={16} color="#FFFFFF" />
@@ -96,36 +102,70 @@ function MiniRouteCard({ scenario, colors }: { scenario: Scenario; colors: Retur
       <Text style={[styles.miniCardTitle, { color: colors.foreground }]} numberOfLines={2}>
         {scenario.title}
       </Text>
-      <View style={styles.miniCardMeta}>
-        <IconSymbol name="clock.fill" size={12} color={colors.muted} />
-        <Text style={[styles.miniCardDuration, { color: colors.muted }]}>{scenario.totalDuration}</Text>
+      <Text style={[styles.miniCardDuration, { color: colors.muted }]}>{scenario.totalDuration}</Text>
+    </Pressable>
+  );
+}
+
+function SmartSuggestionCard({ weather, colors }: { weather: WeatherData | null; colors: ReturnType<typeof useColors> }) {
+  const router = useRouter();
+  
+  let suggestion = {
+    icon: "☀️",
+    text: "Perfect weather for an outdoor scenario",
+    action: "Create outdoor route",
+  };
+
+  if (weather?.main === "Rain") {
+    suggestion = {
+      icon: "🌧️",
+      text: "Cozy indoor vibes today",
+      action: "Find indoor places",
+    };
+  } else if (weather?.main === "Cloud") {
+    suggestion = {
+      icon: "☁️",
+      text: "Great for a calm walk",
+      action: "Plan a walk",
+    };
+  }
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.suggestionCard,
+        { backgroundColor: colors.surface, borderColor: colors.primary + "40", opacity: pressed ? 0.85 : 1 },
+      ]}
+      onPress={() => router.push("/(tabs)/create" as any)}
+    >
+      <Text style={styles.suggestionIcon}>{suggestion.icon}</Text>
+      <View style={styles.suggestionContent}>
+        <Text style={[styles.suggestionText, { color: colors.foreground }]}>{suggestion.text}</Text>
+        <Text style={[styles.suggestionAction, { color: colors.primary }]}>{suggestion.action} →</Text>
       </View>
     </Pressable>
   );
 }
 
-function SmartTriggerBanner({ trigger, colors }: { trigger: { icon: string; text: string; action: string }; colors: ReturnType<typeof useColors> }) {
+function CreateButton({ colors }: { colors: ReturnType<typeof useColors> }) {
   const router = useRouter();
   return (
     <Pressable
       style={({ pressed }) => [
-        styles.triggerBanner,
-        { backgroundColor: colors.surface, borderColor: colors.primary + "40", opacity: pressed ? 0.85 : 1 },
+        styles.createButton,
+        { backgroundColor: colors.primary, opacity: pressed ? 0.9 : 1 },
       ]}
       onPress={() => router.push("/(tabs)/create" as any)}
     >
-      <Text style={styles.triggerIcon}>{trigger.icon}</Text>
-      <View style={styles.triggerContent}>
-        <Text style={[styles.triggerText, { color: colors.foreground }]}>{trigger.text}</Text>
-        <Text style={[styles.triggerAction, { color: colors.primary }]}>{trigger.action}</Text>
-      </View>
-      <IconSymbol name="chevron.right" size={18} color={colors.primary} />
+      <IconSymbol name="sparkles" size={20} color="#FFFFFF" />
+      <Text style={styles.createButtonText}>Create Scenario</Text>
     </Pressable>
   );
 }
 
 export default function HomeScreen() {
   const colors = useColors();
+  const router = useRouter();
   const { state, setWeather, setWeatherLoading } = useScenario();
   const [dailyScenario, setDailyScenario] = useState<Scenario>(SAMPLE_SCENARIOS[0]);
 
@@ -182,24 +222,14 @@ export default function HomeScreen() {
           <DailyScenarioCard scenario={dailyScenario} colors={colors} />
         </View>
 
-        {/* Smart Triggers */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Smart Suggestions</Text>
-          <View style={styles.triggersContainer}>
-            {SMART_TRIGGERS.map((trigger, i) => (
-              <SmartTriggerBanner key={i} trigger={trigger} colors={colors} />
-            ))}
-          </View>
-        </View>
-
         {/* Mini Routes */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Mini Routes</Text>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Quick Escapes</Text>
             <Text style={[styles.sectionSubtitle, { color: colors.muted }]}>10–40 min</Text>
           </View>
           <FlatList
-            data={MINI_ROUTES}
+            data={MINI_ROUTES.slice(0, 3)}
             horizontal
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => item.id}
@@ -209,15 +239,15 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Recent History */}
-        {state.history.length > 0 && (
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Recent</Text>
-            {state.history.slice(0, 3).map((scenario) => (
-              <MiniRouteCard key={scenario.id} scenario={scenario} colors={colors} />
-            ))}
-          </View>
-        )}
+        {/* Smart Suggestion */}
+        <View style={styles.section}>
+          <SmartSuggestionCard weather={state.weather} colors={colors} />
+        </View>
+
+        {/* Create Button */}
+        <View style={styles.section}>
+          <CreateButton colors={colors} />
+        </View>
 
         <View style={{ height: 24 }} />
       </ScrollView>
@@ -248,7 +278,7 @@ const styles = StyleSheet.create({
   },
   weatherEmoji: { fontSize: 16 },
   weatherText: { fontSize: 13, fontWeight: "600" },
-  section: { marginBottom: 28 },
+  section: { marginBottom: 24 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: "700" },
   sectionSubtitle: { fontSize: 13, fontWeight: "400" },
@@ -264,10 +294,11 @@ const styles = StyleSheet.create({
   // Daily card
   dailyCard: {
     borderRadius: 20,
-    padding: 20,
-    gap: 8,
+    padding: 16,
+    gap: 12,
   },
-  dailyCardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  dailyCardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  dailyCardLeft: { flexDirection: "row", gap: 12, flex: 1 },
   moodTag: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -275,37 +306,34 @@ const styles = StyleSheet.create({
   },
   moodTagText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
   dailyCardEmoji: { fontSize: 32 },
-  dailyCardTitle: { color: "#FFFFFF", fontSize: 22, fontWeight: "800", lineHeight: 28 },
-  dailyCardSubtitle: { color: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 20 },
-  dailyCardMeta: { flexDirection: "row", gap: 16, marginTop: 4 },
+  dailyCardTitle: { color: "#FFFFFF", fontSize: 18, fontWeight: "800", lineHeight: 24 },
+  dailyCardSubtitle: { color: "rgba(255,255,255,0.8)", fontSize: 13, lineHeight: 18 },
+  dailyCardMeta: { flexDirection: "row", gap: 12 },
   metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: "500" },
+  metaText: { color: "rgba(255,255,255,0.8)", fontSize: 12, fontWeight: "500" },
   startButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-    paddingVertical: 12,
+    paddingVertical: 11,
     borderRadius: 14,
-    marginTop: 8,
   },
   startButtonText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
   // Mini routes
   miniRoutesList: { paddingRight: 16, gap: 12 },
   miniCard: {
-    width: 140,
+    width: 130,
     borderRadius: 16,
-    padding: 14,
+    padding: 12,
     borderWidth: 1,
-    gap: 6,
+    gap: 8,
   },
   miniCardEmoji: { fontSize: 28 },
   miniCardTitle: { fontSize: 13, fontWeight: "600", lineHeight: 18 },
-  miniCardMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
-  miniCardDuration: { fontSize: 12 },
-  // Smart triggers
-  triggersContainer: { gap: 10 },
-  triggerBanner: {
+  miniCardDuration: { fontSize: 12, fontWeight: "500" },
+  // Smart suggestion
+  suggestionCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
@@ -313,8 +341,18 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
   },
-  triggerIcon: { fontSize: 22 },
-  triggerContent: { flex: 1 },
-  triggerText: { fontSize: 14, fontWeight: "500", lineHeight: 20 },
-  triggerAction: { fontSize: 12, fontWeight: "600", marginTop: 2 },
+  suggestionIcon: { fontSize: 24 },
+  suggestionContent: { flex: 1 },
+  suggestionText: { fontSize: 14, fontWeight: "500", lineHeight: 20 },
+  suggestionAction: { fontSize: 12, fontWeight: "600", marginTop: 2 },
+  // Create button
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 16,
+  },
+  createButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
 });
