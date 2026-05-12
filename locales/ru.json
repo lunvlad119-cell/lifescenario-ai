@@ -1,0 +1,155 @@
+{
+  "common": {
+    "back": "Назад",
+    "next": "Далее",
+    "done": "Готово",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "close": "Закрыть",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успешно",
+    "getStarted": "Начать",
+    "learnMore": "Узнать больше"
+  },
+  "tabs": {
+    "home": "Главная",
+    "explore": "Исследовать",
+    "create": "Создать",
+    "profile": "Профиль"
+  },
+  "home": {
+    "goodMorning": "Доброе утро",
+    "goodAfternoon": "Добрый день",
+    "goodEvening": "Добрый вечер",
+    "todayScenario": "Сценарий на сегодня",
+    "quickEscapes": "Быстрые идеи",
+    "smartSuggestion": "Умное предложение",
+    "createScenario": "Создать сценарий",
+    "viewScenario": "Посмотреть сценарий",
+    "aiGenerated": "Создано AI"
+  },
+  "explore": {
+    "title": "Исследовать",
+    "cozyEvening": "Уютный вечер",
+    "rainyWalk": "Прогулка в дождь",
+    "exploreCity": "Исследовать город",
+    "noScenarios": "Сценарии не найдены"
+  },
+  "create": {
+    "title": "Создать сценарий",
+    "step": "Шаг",
+    "of": "из",
+    "duration": "Сколько у вас времени?",
+    "timeOfDay": "Когда вы хотите выйти?",
+    "energyLevel": "Какой у вас уровень энергии?",
+    "mood": "Какое у вас настроение?",
+    "budget": "Какой у вас бюджет?",
+    "scenarioType": "Какой тип активности?",
+    "socialMode": "Одни или с кем-то?",
+    "generating": "Генерируем ваш сценарий...",
+    "analyzingWeather": "Анализируем погоду...",
+    "understandingCity": "Понимаем атмосферу города...",
+    "findingPlaces": "Ищем спокойные места...",
+    "buildingRoute": "Строим ваш маршрут...",
+    "durations": {
+      "30min": "30 минут",
+      "1hour": "1 час",
+      "2hours": "1–2 часа",
+      "3hours": "2–3 часа",
+      "halfday": "Полдня",
+      "fullday": "Весь день"
+    },
+    "times": {
+      "morning": "Утро",
+      "afternoon": "День",
+      "evening": "Вечер",
+      "night": "Ночь"
+    },
+    "energyLevels": {
+      "veryLow": "Очень низкая",
+      "low": "Низкая",
+      "normal": "Нормальная",
+      "high": "Высокая"
+    },
+    "moods": {
+      "relax": "Расслабиться",
+      "explore": "Исследовать",
+      "recover": "Восстановиться",
+      "energize": "Зарядиться",
+      "social": "Общение",
+      "creative": "Творчество"
+    },
+    "budgets": {
+      "free": "Бесплатно",
+      "cheap": "Бюджет",
+      "medium": "Комфорт",
+      "comfortable": "Премиум"
+    },
+    "types": {
+      "walk": "Прогулка",
+      "food": "Еда",
+      "culture": "Культура",
+      "nature": "Природа",
+      "shopping": "Шопинг",
+      "nightlife": "Ночная жизнь"
+    },
+    "social": {
+      "solo": "Один",
+      "couple": "Вдвоём",
+      "group": "Группа"
+    }
+  },
+  "profile": {
+    "title": "Профиль",
+    "settings": "Настройки",
+    "language": "Язык",
+    "theme": "Тема",
+    "darkMode": "Тёмная тема",
+    "lightMode": "Светлая тема",
+    "systemMode": "Система",
+    "recentScenarios": "Последние сценарии",
+    "savedRoutes": "Сохранённые маршруты",
+    "favoriteCity": "Любимый город",
+    "favoriteInterests": "Любимые интересы",
+    "stats": "Статистика",
+    "scenariosCreated": "Создано сценариев",
+    "routesSaved": "Сохранено маршрутов",
+    "totalTime": "Общее время",
+    "about": "О приложении",
+    "version": "Версия"
+  },
+  "onboarding": {
+    "welcome": "Добро пожаловать в LifeScenario",
+    "welcomeDesc": "Давайте настроим ваши идеальные жизненные сценарии",
+    "step1": "Где вы находитесь?",
+    "step1Desc": "Выберите ваш город",
+    "step2": "Какой у вас бюджет?",
+    "step2Desc": "Установите стандартный расход",
+    "step3": "Что вас интересует?",
+    "step3Desc": "Выберите до 3 интересов",
+    "selected": "выбрано"
+  },
+  "scenario": {
+    "title": "Сценарий",
+    "duration": "Длительность",
+    "stops": "Остановки",
+    "weather": "Погода",
+    "budget": "Бюджет",
+    "atmosphere": "Атмосфера",
+    "save": "Сохранить",
+    "unsave": "Удалить",
+    "share": "Поделиться",
+    "startNow": "Начать сейчас"
+  },
+  "weather": {
+    "rainy": "Дождливо",
+    "sunny": "Солнечно",
+    "cloudy": "Облачно",
+    "cold": "Холодно",
+    "warm": "Тепло",
+    "perfect": "Идеальная погода для прогулки на улице"
+  }
+}

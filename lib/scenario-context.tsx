@@ -10,6 +10,7 @@ interface ScenarioState {
   dailyScenario: Scenario | null;
   weather: WeatherData | null;
   weatherLoading: boolean;
+  hasCompletedOnboarding: boolean;
 }
 
 type ScenarioAction =
@@ -20,7 +21,8 @@ type ScenarioAction =
   | { type: "UPDATE_PREFERENCES"; payload: Partial<UserPreferences> }
   | { type: "LOAD_STATE"; payload: Partial<ScenarioState> }
   | { type: "SET_WEATHER"; payload: WeatherData }
-  | { type: "SET_WEATHER_LOADING"; payload: boolean };
+  | { type: "SET_WEATHER_LOADING"; payload: boolean }
+  | { type: "COMPLETE_ONBOARDING" };
 
 const defaultPreferences: UserPreferences = {
   city: "Prague",
@@ -38,6 +40,7 @@ const initialState: ScenarioState = {
   dailyScenario: null,
   weather: null,
   weatherLoading: false,
+  hasCompletedOnboarding: false,
 };
 
 function reducer(state: ScenarioState, action: ScenarioAction): ScenarioState {
@@ -76,6 +79,8 @@ function reducer(state: ScenarioState, action: ScenarioAction): ScenarioState {
       return { ...state, weather: action.payload, weatherLoading: false };
     case "SET_WEATHER_LOADING":
       return { ...state, weatherLoading: action.payload };
+    case "COMPLETE_ONBOARDING":
+      return { ...state, hasCompletedOnboarding: true };
     default:
       return state;
   }
@@ -91,6 +96,7 @@ interface ScenarioContextValue {
   isSaved: (id: string) => boolean;
   setWeather: (weather: WeatherData) => void;
   setWeatherLoading: (loading: boolean) => void;
+  completeOnboarding: () => void;
 }
 
 const ScenarioContext = createContext<ScenarioContextValue | null>(null);
@@ -152,6 +158,10 @@ export function ScenarioProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "SET_WEATHER_LOADING", payload: loading });
   }, []);
 
+  const completeOnboarding = useCallback(() => {
+    dispatch({ type: "COMPLETE_ONBOARDING" });
+  }, []);
+
   return (
     <ScenarioContext.Provider
       value={{
@@ -164,6 +174,7 @@ export function ScenarioProvider({ children }: { children: React.ReactNode }) {
         isSaved,
         setWeather,
         setWeatherLoading,
+        completeOnboarding,
       }}
     >
       {children}

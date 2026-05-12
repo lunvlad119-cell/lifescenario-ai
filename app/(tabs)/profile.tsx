@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   FlatList,
   Pressable,
   ScrollView,
@@ -13,23 +12,38 @@ import {
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useScenario } from "@/lib/scenario-context";
-import type { Scenario, Budget, EnergyLevel, SocialMode } from "@/shared/types";
+import { useThemeContext } from "@/lib/theme-provider";
+import type { Scenario, Budget, SocialMode } from "@/shared/types";
 import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
+import { useTranslation } from "react-i18next";
+import { setLanguage, getCurrentLanguage } from "@/lib/i18n";
 
 const INTERESTS = [
-  "Culture", "Food", "Nature", "Art", "Music", "History",
-  "Architecture", "Sports", "Photography", "Literature",
-  "Coffee", "Markets", "Parks", "Nightlife", "Wellness",
+  "Culture",
+  "Food",
+  "Nature",
+  "Art",
+  "Music",
+  "History",
+  "Architecture",
+  "Sports",
+  "Photography",
+  "Literature",
+  "Coffee",
+  "Markets",
+  "Parks",
+  "Nightlife",
+  "Wellness",
 ];
 
 const BUDGET_OPTIONS: { value: Budget; label: string; icon: string }[] = [
   { value: "free", label: "Free", icon: "🆓" },
-  { value: "cheap", label: "Cheap", icon: "💚" },
-  { value: "medium", label: "Medium", icon: "💛" },
-  { value: "comfortable", label: "Comfortable", icon: "🧡" },
-  { value: "premium", label: "Premium", icon: "💜" },
+  { value: "cheap", label: "Budget", icon: "💚" },
+  { value: "medium", label: "Comfortable", icon: "💛" },
+  { value: "comfortable", label: "Premium", icon: "💜" },
 ];
 
 const SOCIAL_OPTIONS: { value: SocialMode; label: string; icon: string }[] = [
@@ -39,25 +53,50 @@ const SOCIAL_OPTIONS: { value: SocialMode; label: string; icon: string }[] = [
   { value: "family", label: "Family", icon: "👨‍👩‍👧" },
 ];
 
-function HistoryCard({ scenario, colors }: { scenario: Scenario; colors: ReturnType<typeof useColors> }) {
+function HistoryCard({
+  scenario,
+  colors,
+}: {
+  scenario: Scenario;
+  colors: ReturnType<typeof useColors>;
+}) {
   const router = useRouter();
   return (
     <Pressable
       style={({ pressed }) => [
         styles.historyCard,
-        { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          opacity: pressed ? 0.85 : 1,
+        },
       ]}
-      onPress={() => router.push({ pathname: "/scenario/[id]" as any, params: { id: scenario.id, data: JSON.stringify(scenario) } })}
+      onPress={() =>
+        router.push({
+          pathname: "/scenario/[id]" as any,
+          params: { id: scenario.id, data: JSON.stringify(scenario) },
+        })
+      }
     >
       <Text style={styles.historyEmoji}>{scenario.emoji}</Text>
       <View style={styles.historyContent}>
-        <Text style={[styles.historyTitle, { color: colors.foreground }]} numberOfLines={1}>{scenario.title}</Text>
+        <Text
+          style={[styles.historyTitle, { color: colors.foreground }]}
+          numberOfLines={1}
+        >
+          {scenario.title}
+        </Text>
         <Text style={[styles.historyDate, { color: colors.muted }]}>
-          {new Date(scenario.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          {new Date(scenario.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}
         </Text>
       </View>
       <View style={[styles.moodTag, { backgroundColor: colors.primary + "18" }]}>
-        <Text style={[styles.moodTagText, { color: colors.primary }]}>{scenario.moodTag}</Text>
+        <Text style={[styles.moodTagText, { color: colors.primary }]}>
+          {scenario.moodTag}
+        </Text>
       </View>
     </Pressable>
   );
@@ -65,15 +104,21 @@ function HistoryCard({ scenario, colors }: { scenario: Scenario; colors: ReturnT
 
 export default function ProfileScreen() {
   const colors = useColors();
+  const { t } = useTranslation();
+  const { colorScheme, setColorScheme } = useThemeContext();
   const { state, updatePreferences, unsaveScenario } = useScenario();
   const [editingCity, setEditingCity] = useState(false);
   const [cityInput, setCityInput] = useState(state.preferences.city);
+  const [currentLanguage, setCurrentLanguage] = useState(getCurrentLanguage());
 
   const toggleInterest = (interest: string) => {
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (Platform.OS !== "web")
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const current = state.preferences.interests;
     if (current.includes(interest)) {
-      updatePreferences({ interests: current.filter((i) => i !== interest) });
+      updatePreferences({
+        interests: current.filter((i) => i !== interest),
+      });
     } else {
       updatePreferences({ interests: [...current, interest] });
     }
@@ -86,176 +131,364 @@ export default function ProfileScreen() {
     setEditingCity(false);
   };
 
+  const handleLanguageChange = async (lang: string) => {
+    if (Platform.OS !== "web")
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await setLanguage(lang);
+    setCurrentLanguage(lang);
+  };
+
   const stats = [
-    { label: "Scenarios", value: state.history.length.toString(), icon: "🗺️" },
-    { label: "Saved", value: state.savedScenarios.length.toString(), icon: "🔖" },
-    { label: "Cities", value: "1", icon: "🏙️" },
+    {
+      label: t("profile.scenarios"),
+      value: state.history.length.toString(),
+      icon: "🗺️",
+    },
+    {
+      label: t("profile.saved"),
+      value: state.savedScenarios.length.toString(),
+      icon: "❤️",
+    },
+    {
+      label: t("profile.interests"),
+      value: state.preferences.interests.length.toString(),
+      icon: "⭐",
+    },
   ];
 
   return (
     <ScreenContainer containerClassName="bg-background">
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
-        <View style={[styles.profileHeader, { backgroundColor: colors.primary }]}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarEmoji}>🧭</Text>
+        <View style={styles.header}>
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Text style={styles.avatarEmoji}>👤</Text>
           </View>
-          <Text style={styles.profileName}>Life Explorer</Text>
-          {editingCity ? (
-            <View style={styles.cityEditRow}>
-              <TextInput
-                style={[styles.cityEditInput, { color: "#FFFFFF", borderColor: "rgba(255,255,255,0.4)" }]}
-                value={cityInput}
-                onChangeText={setCityInput}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={handleSaveCity}
-                placeholderTextColor="rgba(255,255,255,0.6)"
-              />
-              <Pressable onPress={handleSaveCity}>
-                <IconSymbol name="checkmark.circle.fill" size={24} color="rgba(255,255,255,0.9)" />
-              </Pressable>
-            </View>
-          ) : (
-            <Pressable style={styles.cityRow} onPress={() => setEditingCity(true)}>
-              <IconSymbol name="location.fill" size={14} color="rgba(255,255,255,0.8)" />
-              <Text style={styles.cityText}>{state.preferences.city}</Text>
-              <IconSymbol name="pencil" size={12} color="rgba(255,255,255,0.6)" />
-            </Pressable>
-          )}
+          <View style={styles.headerContent}>
+            <Text style={[styles.headerTitle, { color: colors.foreground }]}>
+              {t("profile.title")}
+            </Text>
+            <Text style={[styles.headerSubtitle, { color: colors.muted }]}>
+              {state.preferences.city}
+            </Text>
+          </View>
         </View>
 
         {/* Stats */}
-        <View style={[styles.statsRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          {stats.map((stat, i) => (
-            <View key={stat.label} style={[styles.statItem, i < stats.length - 1 && { borderRightWidth: 1, borderRightColor: colors.border }]}>
+        <View style={styles.statsContainer}>
+          {stats.map((stat, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
               <Text style={styles.statIcon}>{stat.icon}</Text>
-              <Text style={[styles.statValue, { color: colors.foreground }]}>{stat.value}</Text>
-              <Text style={[styles.statLabel, { color: colors.muted }]}>{stat.label}</Text>
+              <Text
+                style={[styles.statValue, { color: colors.foreground }]}
+              >
+                {stat.value}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.muted }]}>
+                {stat.label}
+              </Text>
             </View>
           ))}
         </View>
 
-        {/* Interests */}
+        {/* Language Selector */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>My Interests</Text>
-          <Text style={[styles.sectionSubtitle, { color: colors.muted }]}>Tap to toggle your interests</Text>
-          <View style={styles.interestsGrid}>
-            {INTERESTS.map((interest) => {
-              const active = state.preferences.interests.includes(interest);
-              return (
-                <Pressable
-                  key={interest}
-                  style={({ pressed }) => [
-                    styles.interestChip,
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+            {t("profile.language")}
+          </Text>
+          <View style={styles.languageGrid}>
+            {["en", "ru"].map((lang) => (
+              <Pressable
+                key={lang}
+                style={({ pressed }) => [
+                  styles.languageButton,
+                  {
+                    backgroundColor:
+                      currentLanguage === lang
+                        ? colors.primary
+                        : colors.surface,
+                    borderColor:
+                      currentLanguage === lang ? colors.primary : colors.border,
+                    opacity: pressed ? 0.85 : 1,
+                  },
+                ]}
+                onPress={() => handleLanguageChange(lang)}
+              >
+                <Text
+                  style={[
+                    styles.languageLabel,
                     {
-                      backgroundColor: active ? colors.primary : colors.surface,
-                      borderColor: active ? colors.primary : colors.border,
-                      opacity: pressed ? 0.8 : 1,
+                      color:
+                        currentLanguage === lang
+                          ? "#FFFFFF"
+                          : colors.foreground,
                     },
                   ]}
-                  onPress={() => toggleInterest(interest)}
                 >
-                  <Text style={[styles.interestLabel, { color: active ? "#FFFFFF" : colors.foreground }]}>
-                    {interest}
-                  </Text>
-                </Pressable>
-              );
-            })}
+                  {lang === "en" ? "🇬🇧 English" : "🇷🇺 Русский"}
+                </Text>
+                {currentLanguage === lang && (
+                  <IconSymbol
+                    name="checkmark.circle.fill"
+                    size={20}
+                    color="#FFFFFF"
+                  />
+                )}
+              </Pressable>
+            ))}
           </View>
         </View>
 
-        {/* Preferences */}
+        {/* Theme Selector */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Default Preferences</Text>
-          <View style={[styles.prefsCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {/* Default Budget */}
-            <View style={styles.prefRow}>
-              <Text style={[styles.prefLabel, { color: colors.muted }]}>Default Budget</Text>
-              <View style={styles.prefOptions}>
-                {BUDGET_OPTIONS.map((opt) => (
-                  <Pressable
-                    key={opt.value}
-                    style={({ pressed }) => [
-                      styles.prefChip,
-                      {
-                        backgroundColor: state.preferences.defaultBudget === opt.value ? colors.primary : colors.background,
-                        borderColor: state.preferences.defaultBudget === opt.value ? colors.primary : colors.border,
-                        opacity: pressed ? 0.8 : 1,
-                      },
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+            {t("profile.theme")}
+          </Text>
+          <View style={styles.themeGrid}>
+            {["light", "dark"].map((theme) => (
+              <Pressable
+                key={theme}
+                style={({ pressed }) => [
+                  styles.themeButton,
+                  {
+                    backgroundColor:
+                      colorScheme === theme
+                        ? colors.primary
+                        : colors.surface,
+                    borderColor:
+                      colorScheme === theme ? colors.primary : colors.border,
+                    opacity: pressed ? 0.85 : 1,
+                  },
+                ]}
+                onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}
+              >
+                <IconSymbol
+                  name={theme === "light" ? "sun.max.fill" : "moon.fill"}
+                  size={24}
+                  color={colorScheme === theme ? "#FFFFFF" : colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.themeLabel,
+                    {
+                      color:
+                        colorScheme === theme
+                          ? "#FFFFFF"
+                          : colors.foreground,
+                    },
+                  ]}
+                >
+                  {theme === "light"
+                    ? t("profile.light")
+                    : t("profile.dark")}
+                </Text>
+                {colorScheme === theme && (
+                  <IconSymbol
+                    name="checkmark.circle.fill"
+                    size={18}
+                    color="#FFFFFF"
+                  />
+                )}
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        {/* City Settings */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+            {t("profile.city")}
+          </Text>
+          {!editingCity ? (
+            <Pressable
+              style={({ pressed }) => [
+                styles.cityDisplay,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.85 : 1,
+                },
+              ]}
+              onPress={() => setEditingCity(true)}
+            >
+              <View style={styles.cityDisplayContent}>
+                <IconSymbol
+                  name="location.fill"
+                  size={18}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[styles.cityDisplayText, { color: colors.foreground }]}
+                >
+                  {state.preferences.city}
+                </Text>
+              </View>
+              <IconSymbol name="pencil" size={16} color={colors.muted} />
+            </Pressable>
+          ) : (
+            <View style={styles.cityEditContainer}>
+              <TextInput
+                style={[
+                  styles.cityInput,
+                  {
+                    color: colors.foreground,
+                    borderColor: colors.border,
+                    backgroundColor: colors.surface,
+                  },
+                ]}
+                placeholder={t("profile.enterCity")}
+                placeholderTextColor={colors.muted}
+                value={cityInput}
+                onChangeText={setCityInput}
+                autoFocus
+              />
+              <View style={styles.cityButtonsRow}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.cityButton,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                  onPress={() => setEditingCity(false)}
+                >
+                  <Text
+                    style={[
+                      styles.cityButtonText,
+                      { color: colors.foreground },
                     ]}
-                    onPress={() => updatePreferences({ defaultBudget: opt.value })}
                   >
-                    <Text style={styles.prefChipIcon}>{opt.icon}</Text>
-                    <Text style={[styles.prefChipLabel, { color: state.preferences.defaultBudget === opt.value ? "#FFFFFF" : colors.foreground }]}>
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                ))}
+                    {t("common.cancel")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.cityButton,
+                    {
+                      backgroundColor: colors.primary,
+                      opacity: pressed ? 0.9 : 1,
+                    },
+                  ]}
+                  onPress={handleSaveCity}
+                >
+                  <Text style={[styles.cityButtonText, { color: "#FFFFFF" }]}>
+                    {t("common.save")}
+                  </Text>
+                </Pressable>
               </View>
             </View>
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            {/* Default Social Mode */}
-            <View style={styles.prefRow}>
-              <Text style={[styles.prefLabel, { color: colors.muted }]}>Usually Going</Text>
-              <View style={styles.prefOptions}>
-                {SOCIAL_OPTIONS.map((opt) => (
-                  <Pressable
-                    key={opt.value}
-                    style={({ pressed }) => [
-                      styles.prefChip,
-                      {
-                        backgroundColor: state.preferences.defaultSocialMode === opt.value ? colors.primary : colors.background,
-                        borderColor: state.preferences.defaultSocialMode === opt.value ? colors.primary : colors.border,
-                        opacity: pressed ? 0.8 : 1,
-                      },
-                    ]}
-                    onPress={() => updatePreferences({ defaultSocialMode: opt.value })}
-                  >
-                    <Text style={styles.prefChipIcon}>{opt.icon}</Text>
-                    <Text style={[styles.prefChipLabel, { color: state.preferences.defaultSocialMode === opt.value ? "#FFFFFF" : colors.foreground }]}>
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
+          )}
+        </View>
+
+        {/* Interests */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+            {t("profile.interests")}
+          </Text>
+          <View style={styles.interestGrid}>
+            {INTERESTS.map((interest) => (
+              <Pressable
+                key={interest}
+                style={({ pressed }) => [
+                  styles.interestTag,
+                  {
+                    backgroundColor: state.preferences.interests.includes(
+                      interest
+                    )
+                      ? colors.primary
+                      : colors.surface,
+                    borderColor: state.preferences.interests.includes(
+                      interest
+                    )
+                      ? colors.primary
+                      : colors.border,
+                    opacity: pressed ? 0.85 : 1,
+                  },
+                ]}
+                onPress={() => toggleInterest(interest)}
+              >
+                <Text
+                  style={[
+                    styles.interestText,
+                    {
+                      color: state.preferences.interests.includes(interest)
+                        ? "#FFFFFF"
+                        : colors.foreground,
+                    },
+                  ]}
+                >
+                  {interest}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         </View>
 
         {/* Saved Scenarios */}
         {state.savedScenarios.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Saved Scenarios</Text>
-            <View style={styles.historyList}>
-              {state.savedScenarios.map((scenario) => (
-                <HistoryCard key={scenario.id} scenario={scenario} colors={colors} />
-              ))}
-            </View>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+              {t("profile.saved")}
+            </Text>
+            <FlatList
+              data={state.savedScenarios}
+              scrollEnabled={false}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.historyItemWrapper}>
+                  <HistoryCard scenario={item} colors={colors} />
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.unsaveButton,
+                      { opacity: pressed ? 0.7 : 1 },
+                    ]}
+                    onPress={() => unsaveScenario(item.id)}
+                  >
+                    <IconSymbol
+                      name="heart.fill"
+                      size={18}
+                      color={colors.primary}
+                    />
+                  </Pressable>
+                </View>
+              )}
+            />
           </View>
         )}
 
         {/* History */}
         {state.history.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>History</Text>
-            <View style={styles.historyList}>
-              {state.history.slice(0, 10).map((scenario) => (
-                <HistoryCard key={scenario.id} scenario={scenario} colors={colors} />
-              ))}
-            </View>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+              {t("profile.history")}
+            </Text>
+            <FlatList
+              data={state.history}
+              scrollEnabled={false}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <HistoryCard scenario={item} colors={colors} />
+              )}
+            />
           </View>
         )}
 
-        {state.history.length === 0 && state.savedScenarios.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>🗺️</Text>
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No scenarios yet</Text>
-            <Text style={[styles.emptySubtitle, { color: colors.muted }]}>Create your first scenario to see it here</Text>
-          </View>
-        )}
-
-        <View style={{ height: 32 }} />
+        <View style={{ height: 24 }} />
       </ScrollView>
     </ScreenContainer>
   );
@@ -263,91 +496,142 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
-  profileHeader: {
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  header: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingTop: 24,
-    paddingBottom: 28,
-    gap: 8,
+    gap: 12,
+    marginBottom: 24,
   },
-  avatarContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "rgba(255,255,255,0.2)",
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 4,
   },
-  avatarEmoji: { fontSize: 36 },
-  profileName: { color: "#FFFFFF", fontSize: 22, fontWeight: "800" },
-  cityRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  cityText: { color: "rgba(255,255,255,0.85)", fontSize: 14 },
-  cityEditRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  cityEditInput: {
-    borderWidth: 1,
-    borderRadius: 8,
+  avatarEmoji: { fontSize: 28 },
+  headerContent: { flex: 1 },
+  headerTitle: { fontSize: 20, fontWeight: "700", marginBottom: 2 },
+  headerSubtitle: { fontSize: 13, fontWeight: "500" },
+  statsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 24,
+  },
+  statCard: {
+    flex: 1,
+    paddingVertical: 12,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    fontSize: 14,
-    color: "#FFFFFF",
-    minWidth: 120,
-  },
-  statsRow: {
-    flexDirection: "row",
-    marginHorizontal: 20,
-    marginTop: -16,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    overflow: "hidden",
-  },
-  statItem: { flex: 1, alignItems: "center", paddingVertical: 16, gap: 2 },
-  statIcon: { fontSize: 20 },
-  statValue: { fontSize: 20, fontWeight: "800" },
-  statLabel: { fontSize: 12 },
-  section: { paddingHorizontal: 20, marginTop: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: "700", marginBottom: 4 },
-  sectionSubtitle: { fontSize: 13, marginBottom: 12 },
-  interestsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  interestChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
-  },
-  interestLabel: { fontSize: 13, fontWeight: "500" },
-  prefsCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
-  prefRow: { padding: 14, gap: 10 },
-  prefLabel: { fontSize: 13, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5 },
-  prefOptions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  prefChip: {
-    flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+  },
+  statIcon: { fontSize: 20 },
+  statValue: { fontSize: 16, fontWeight: "700" },
+  statLabel: { fontSize: 11, fontWeight: "500" },
+  section: { marginBottom: 24 },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  languageGrid: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  languageButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  prefChipIcon: { fontSize: 14 },
-  prefChipLabel: { fontSize: 12, fontWeight: "600" },
-  divider: { height: 1, marginHorizontal: 14 },
-  historyList: { gap: 10 },
+  languageLabel: { fontSize: 14, fontWeight: "600" },
+  themeGrid: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  themeButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  themeLabel: { fontSize: 13, fontWeight: "600" },
+  cityDisplay: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  cityDisplayContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  cityDisplayText: { fontSize: 15, fontWeight: "600" },
+  cityEditContainer: { gap: 12 },
+  cityInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  cityButtonsRow: { flexDirection: "row", gap: 12 },
+  cityButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  cityButtonText: { fontSize: 14, fontWeight: "700" },
+  interestGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  interestTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  interestText: { fontSize: 13, fontWeight: "600" },
+  historyItemWrapper: { position: "relative", marginBottom: 12 },
   historyCard: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    padding: 12,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
   },
-  historyEmoji: { fontSize: 28 },
-  historyContent: { flex: 1 },
+  historyEmoji: { fontSize: 24 },
+  historyContent: { flex: 1, gap: 2 },
   historyTitle: { fontSize: 14, fontWeight: "600" },
-  historyDate: { fontSize: 12, marginTop: 2 },
-  moodTag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  moodTagText: { fontSize: 11, fontWeight: "600" },
-  emptyState: { alignItems: "center", paddingVertical: 40, gap: 8 },
-  emptyEmoji: { fontSize: 48 },
-  emptyTitle: { fontSize: 18, fontWeight: "700" },
-  emptySubtitle: { fontSize: 14 },
+  historyDate: { fontSize: 12, fontWeight: "500" },
+  moodTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  moodTagText: { fontSize: 11, fontWeight: "700" },
+  unsaveButton: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+  },
 });

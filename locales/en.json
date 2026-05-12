@@ -1,0 +1,155 @@
+{
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "tabs": {
+    "home": "Home",
+    "explore": "Explore",
+    "create": "Create",
+    "profile": "Profile"
+  },
+  "home": {
+    "goodMorning": "Good morning",
+    "goodAfternoon": "Good afternoon",
+    "goodEvening": "Good evening",
+    "todayScenario": "Today's Scenario",
+    "quickEscapes": "Quick Escapes",
+    "smartSuggestion": "Smart Suggestion",
+    "createScenario": "Create Scenario",
+    "viewScenario": "View Scenario",
+    "aiGenerated": "AI Generated"
+  },
+  "explore": {
+    "title": "Explore",
+    "cozyEvening": "Cozy Evening",
+    "rainyWalk": "Rainy Walk",
+    "exploreCity": "Explore City",
+    "noScenarios": "No scenarios found"
+  },
+  "create": {
+    "title": "Create Scenario",
+    "step": "Step",
+    "of": "of",
+    "duration": "How much time do you have?",
+    "timeOfDay": "When do you want to go?",
+    "energyLevel": "What's your energy level?",
+    "mood": "What's your mood?",
+    "budget": "What's your budget?",
+    "scenarioType": "What type of activity?",
+    "socialMode": "Going solo or with others?",
+    "generating": "Generating your scenario...",
+    "analyzingWeather": "Analyzing weather...",
+    "understandingCity": "Understanding city vibe...",
+    "findingPlaces": "Finding calm places...",
+    "buildingRoute": "Building your route...",
+    "durations": {
+      "30min": "30 minutes",
+      "1hour": "1 hour",
+      "2hours": "1–2 hours",
+      "3hours": "2–3 hours",
+      "halfday": "Half day",
+      "fullday": "Full day"
+    },
+    "times": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "energyLevels": {
+      "veryLow": "Very Low",
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High"
+    },
+    "moods": {
+      "relax": "Relax",
+      "explore": "Explore",
+      "recover": "Recover",
+      "energize": "Energize",
+      "social": "Social",
+      "creative": "Creative"
+    },
+    "budgets": {
+      "free": "Free",
+      "cheap": "Budget",
+      "medium": "Comfortable",
+      "comfortable": "Premium"
+    },
+    "types": {
+      "walk": "Walk",
+      "food": "Food",
+      "culture": "Culture",
+      "nature": "Nature",
+      "shopping": "Shopping",
+      "nightlife": "Nightlife"
+    },
+    "social": {
+      "solo": "Solo",
+      "couple": "Couple",
+      "group": "Group"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "systemMode": "System",
+    "recentScenarios": "Recent Scenarios",
+    "savedRoutes": "Saved Routes",
+    "favoriteCity": "Favorite City",
+    "favoriteInterests": "Favorite Interests",
+    "stats": "Statistics",
+    "scenariosCreated": "Scenarios Created",
+    "routesSaved": "Routes Saved",
+    "totalTime": "Total Time Spent",
+    "about": "About",
+    "version": "Version"
+  },
+  "onboarding": {
+    "welcome": "Welcome to LifeScenario",
+    "welcomeDesc": "Let's set up your perfect life scenarios",
+    "step1": "Where are you?",
+    "step1Desc": "Choose your city",
+    "step2": "What's your budget?",
+    "step2Desc": "Set your default spending",
+    "step3": "What interests you?",
+    "step3Desc": "Pick up to 3 interests",
+    "selected": "selected"
+  },
+  "scenario": {
+    "title": "Scenario",
+    "duration": "Duration",
+    "stops": "Stops",
+    "weather": "Weather",
+    "budget": "Budget",
+    "atmosphere": "Atmosphere",
+    "save": "Save",
+    "unsave": "Unsave",
+    "share": "Share",
+    "startNow": "Start Now"
+  },
+  "weather": {
+    "rainy": "Rainy",
+    "sunny": "Sunny",
+    "cloudy": "Cloudy",
+    "cold": "Cold",
+    "warm": "Warm",
+    "perfect": "Perfect weather for an outdoor scenario"
+  }
+}
