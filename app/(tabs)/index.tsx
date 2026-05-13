@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
@@ -17,6 +19,8 @@ import type { WeatherData } from "@/lib/weather-service";
 import { SAMPLE_SCENARIOS, MINI_ROUTES } from "@/lib/sample-data";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
+
+const POPULAR_CITIES = ["Prague", "Berlin", "Paris", "London", "Tokyo", "New York", "Barcelona", "Rome"];
 
 function WeatherWidget({
   weather,
@@ -236,10 +240,19 @@ export default function HomeScreen() {
   const colors = useColors();
   const router = useRouter();
   const { t } = useTranslation();
-  const { state, setWeather, setWeatherLoading } = useScenario();
+  const { state, setWeather, setWeatherLoading, updatePreferences } = useScenario();
   const [weather, setWeatherState] = useState<WeatherData | null>(null);
   const [weatherLoading, setWeatherLoadingState] = useState(false);
   const [dailyScenario, setDailyScenario] = useState<Scenario>(SAMPLE_SCENARIOS[0]);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [recentCities, setRecentCities] = useState<string[]>([]);
+
+  const filteredCities = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return POPULAR_CITIES;
+    return POPULAR_CITIES.filter((c) => c.toLowerCase().includes(q));
+  }, [search]);
 
   // Fetch weather on mount and when city changes
   useEffect(() => {
@@ -256,6 +269,11 @@ export default function HomeScreen() {
 
     fetchWeather();
   }, [state.preferences.city, setWeather, setWeatherLoading]);
+
+  useEffect(() => {
+    const nextRecent = [state.preferences.city, ...recentCities.filter((c) => c !== state.preferences.city)].slice(0, 5);
+    setRecentCities(nextRecent);
+  }, [state.preferences.city]);
 
   useEffect(() => {
     if (state.dailyScenario) {
@@ -276,7 +294,7 @@ export default function HomeScreen() {
             <Text style={[styles.greeting, { color: colors.muted }]}>
               {t("home.goodEvening")}
             </Text>
-            <View style={styles.cityRow}>
+            <Pressable style={styles.cityRow} onPress={() => setSelectorOpen(true)}>
               <IconSymbol
                 name="location.fill"
                 size={16}
@@ -285,7 +303,8 @@ export default function HomeScreen() {
               <Text style={[styles.cityName, { color: colors.foreground }]}>
                 {state.preferences.city}
               </Text>
-            </View>
+            <IconSymbol name="chevron.down" size={12} color={colors.muted} />
+            </Pressable>
           </View>
           <WeatherWidget
             weather={weather}
@@ -342,8 +361,20 @@ export default function HomeScreen() {
           <CreateButton colors={colors} t={t} />
         </View>
 
-        <View style={{ height: 24 }} />
+        <View style={{ height: 12 }} />
       </ScrollView>
+
+      <Modal visible={selectorOpen} transparent animationType="slide" onRequestClose={() => setSelectorOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+            <View style={styles.modalHeader}><Text style={[styles.modalTitle, { color: colors.foreground }]}>Select city</Text><Pressable onPress={() => setSelectorOpen(false)}><IconSymbol name="xmark" size={18} color={colors.muted} /></Pressable></View>
+            <TextInput value={search} onChangeText={setSearch} placeholder="Search city" placeholderTextColor={colors.muted} style={[styles.cityInput,{color:colors.foreground,borderColor:colors.border,backgroundColor:colors.surface}]} />
+            {!!recentCities.length && <><Text style={[styles.groupTitle,{color:colors.muted}]}>Recent</Text><View style={styles.cityChips}>{recentCities.map((city)=><Pressable key={city} style={[styles.cityChip,{borderColor:colors.border,backgroundColor:colors.surface}]} onPress={()=>{updatePreferences({city}); setSelectorOpen(false);}}><Text style={{color:colors.foreground,fontWeight:"600"}}>{city}</Text></Pressable>)}</View></>}
+            <Text style={[styles.groupTitle,{color:colors.muted}]}>Popular</Text>
+            <ScrollView contentContainerStyle={styles.cityList}>{filteredCities.map((city)=><Pressable key={city} style={[styles.cityRowItem,{borderColor:colors.border,backgroundColor:colors.surface}]} onPress={()=>{updatePreferences({city}); setSelectorOpen(false);}}><Text style={{color:colors.foreground,fontSize:16,fontWeight:"600"}}>{city}</Text></Pressable>)}</ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }
@@ -359,6 +390,16 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 13, fontWeight: "500", marginBottom: 4 },
   cityRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  modalBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.35)" },
+  modalCard: { borderTopLeftRadius: 20, borderTopRightRadius: 20, borderWidth: 1, borderBottomWidth: 0, padding: 16, maxHeight: "82%" },
+  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+  modalTitle: { fontSize: 18, fontWeight: "800" },
+  cityInput: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, marginBottom: 12 },
+  groupTitle: { fontSize: 12, fontWeight: "700", marginBottom: 8 },
+  cityChips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 12 },
+  cityChip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
+  cityList: { gap: 8, paddingBottom: 16 },
+  cityRowItem: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12 },
   cityName: { fontSize: 18, fontWeight: "700" },
   weatherWidget: {
     flexDirection: "row",
